@@ -1,11 +1,18 @@
-
-/**
- * Module dependencies.
- */
-
 var express = require('express');
+var everyauth = require('everyauth');
+		    
+var conf = require('./conf');
 
 var app = module.exports = express.createServer();
+
+everyauth.facebook.appId(conf.fb.appId)
+	          .appSecret(conf.fb.secret)
+		  .findOrCreateUser(function (session, accessToken, accessTokenExtra, fbUserMetadata) {
+		      console.log(arguments);
+		      return 5;
+		  })
+		  .redirectPath('/');
+everyauth.helpExpress(app);
 
 // Configuration
 
@@ -14,6 +21,11 @@ app.configure(function(){
   app.set('view engine', 'jade');
   app.use(express.bodyParser());
   app.use(express.methodOverride());
+  app.use(express.cookieParser());
+  app.use(express.session({
+      secret: conf.sessionSecret,
+  }));
+  app.use(everyauth.middleware());
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
 });
